@@ -5,23 +5,21 @@ struct Table_District {
 	int RASXOD;
 	double U = NAN; //строка
 	double V = NAN; //столбец
-	bool isUsed = false;
-	bool isMinus = true;
-	bool isPlus = false;
-	bool isGarbage = true;
+	bool isCheckedAlready = false; //флаг проверки €чейки
+	bool isUsedOnCycle = false; //флаг вершины в цикле перестановки
+	bool isMinus_PT = true; //флаг отрицательной метки
 	Table_District()
 	{}
 
-	Table_District(double xx, int yy, double aa, double bb, bool zz, bool kk, bool jj, bool hh)
+	Table_District(double xx, int yy, double aa, double bb, bool zz, bool kk, bool cc)
 	{
 		TOVAR_AMT = xx;
 		RASXOD = yy;
 		U = aa;
 		V = bb;
-		isUsed = zz;
-		isMinus = kk;
-		isPlus = jj;
-		isGarbage = hh;
+		isCheckedAlready = zz;
+		isUsedOnCycle = kk;
+		isMinus_PT = cc;
 	}
 };
 
@@ -88,9 +86,38 @@ struct Table_Alpha {
 	}
 };
 
-bool isOpenWork = false; //флаг типа задачи
+struct WayCell {
+	int i = NULL; //координата строки
+	int j = NULL; //координата столбца
+	WayCell()
+	{}
 
-int N = NULL, //пункты продажи
-	M = NULL, //пункты производства
-	SUMM_A = NULL,
-	SUMM_B = NULL; 
+	WayCell(int aa, int bb)
+	{
+		i = aa;
+		j = bb;
+
+	}
+};
+
+int min = INT_MIN;
+int A_BASIC_i, A_BASIC_j; //координаты исходной точки поиска
+int iteration = NULL;
+
+bool isOpenWork = false; //флаг типа задачи
+bool isFirstRun = true;
+bool isFinalTry = false;
+bool drawCycleWay = false;
+
+int N = NULL; //пункты продажи
+int	M = NULL; //пункты производства
+int SUMM_A = NULL,
+	SUMM_B = NULL;
+
+Table_A *TABLE_A;
+Table_B *TABLE_B;
+Table_District **TABLE_DIST;
+
+vector <WayCell> WAY; //вектор пам€ти пути робота
+
+WayCell *SAVETHEWAY;

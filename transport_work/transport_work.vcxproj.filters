@@ -21,7 +21,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="variables.h">
-      <Filter>Файлы ресурсов</Filter>
+      <Filter>Заголовочные файлы</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
