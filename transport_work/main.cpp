@@ -145,7 +145,7 @@ bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int H
 
 	if (isVerticalSearch) { //если ищем по вертикали, то
 		A_Find = &A_i; //предыдущее значение есть i-e
-		LIMIT = &HORZ_M; // ограничиваем по вертикали (написано, что горизонт, но мне лень править код из-за одной хуйни
+		LIMIT = &VERT_M; // ограничиваем по вертикали (написано, что горизонт, но мне лень править код из-за одной хуйни
 
 		A_check_valid = &A_BASIC_i; //проверяем по i-му базису
 
@@ -156,7 +156,7 @@ bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int H
 	//по j-му все также работает, только наоборот, лень писать все заново
 	else {
 		A_Find = &A_j;
-		LIMIT = &VERT_M;
+		LIMIT = &HORZ_M;
 
 		A_check_valid = &A_BASIC_j;
 
@@ -304,7 +304,7 @@ void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> 
 bool CheckOptimal(Table_Alpha *TABLE_AL, int V_MASS, int INT_MAX_COUNT) {
 	bool ifFirst = true;
 	for (int i = 0; i < V_MASS; i++) {
-		if (TABLE_AL[i].a < 0)
+		if (TABLE_AL[i].a <= 0)
 			INT_MAX_COUNT++;
 		else {
 			if (ifFirst) {
@@ -347,18 +347,18 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 	TABLE_V[0].V = 0.0;
 	bool endofCycle = false;
 	while (!endofCycle) {
-		for (int i = 0; i < M; i++) {
-			for (int j = 0; j < N; j++) {
-				if (!isnan(TABLE_DIST[j][i].TOVAR_AMT)) {
-					if (isnan(TABLE_U[i].U) && !isnan(TABLE_V[j].V)) {
-						TABLE_U[i].U = TABLE_DIST[j][i].RASXOD + TABLE_V[j].V;
-						cout << "U[" << i << "] = " << TABLE_DIST[j][i].RASXOD << " + " << TABLE_V[j].V << " = " << TABLE_U[i].U << ";" << endl;
+		for (int j = 0; j < N; j++) {
+			for (int i = 0; i < M; i++) {
+				if (!isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
+					if (isnan(TABLE_U[j].U) && !isnan(TABLE_V[i].V)) {
+						TABLE_U[j].U = TABLE_DIST[i][j].RASXOD + TABLE_V[i].V;
+						cout << "U[" << j << "] = " << TABLE_DIST[i][j].RASXOD << " + " << TABLE_V[i].V << " = " << TABLE_U[j].U << ";" << endl;
 						count_value++;
 						continue;
 					}
-					else if (isnan(TABLE_V[j].V) && !isnan(TABLE_U[i].U)) {
-						TABLE_V[j].V = ((-1)*TABLE_DIST[j][i].RASXOD) + TABLE_U[i].U;
-						cout << "V[" << i << "] = -(" << TABLE_DIST[j][i].RASXOD << ") + " << TABLE_U[i].U << " = " << TABLE_V[j].V << ";" << endl;
+					else if (isnan(TABLE_V[i].V) && !isnan(TABLE_U[j].U)) {
+						TABLE_V[i].V = ((-1)*TABLE_DIST[i][j].RASXOD) + TABLE_U[j].U;
+						cout << "V[" << i << "] = -(" << TABLE_DIST[i][j].RASXOD << ") + " << TABLE_U[j].U << " = " << TABLE_V[i].V << ";" << endl;
 						count_value++;
 						continue;
 					}
@@ -369,8 +369,8 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 				endofCycle = true;
 				break;
 			}
-			else if (i + 1 >= M)
-				i = -1;
+			else if (j + 1 >= N)
+				j = -1;
 			else;
 		}
 	}
@@ -394,11 +394,11 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 
 	//Находим потанцевалы свободных ячеек
 	cout << "Найдем потенциалы свободных ячеек по формуле: U[i] - V[j] - расход ячейки" << endl;
-	for (int i = 0; i < M; i++) {
-		for (int j = 0; j < N; j++) {
-			if (isnan(TABLE_DIST[j][i].TOVAR_AMT)) {
-				TABLE_AL[count_value].a = TABLE_U[i].U - TABLE_V[j].V - TABLE_DIST[j][i].RASXOD;
-				cout << "AL[" << count_value << "] = U[" << i << "]-V[" << j << "]-" << TABLE_DIST[j][i].RASXOD << " = " << TABLE_U[i].U << " - " << TABLE_V[j].V << " - " << TABLE_DIST[j][i].RASXOD << " = " << TABLE_AL[count_value].a << endl;
+	for (int j = 0; j < N; j++) {
+		for (int i = 0; i < M; i++) {
+			if (isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
+				TABLE_AL[count_value].a = TABLE_U[j].U - TABLE_V[i].V - TABLE_DIST[i][j].RASXOD;
+				cout << "AL[" << count_value << "] = U[" << j << "]-V[" << i << "]-" << TABLE_DIST[i][j].RASXOD << " = " << TABLE_U[j].U << " - " << TABLE_V[i].V << " - " << TABLE_DIST[i][j].RASXOD << " = " << TABLE_AL[count_value].a << endl;
 				TABLE_AL[count_value].i = i;
 				TABLE_AL[count_value].j = j;
 				count_value++;
@@ -505,7 +505,7 @@ void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A,
 				TABLE_AL[i].a = NAN;
 
 			cout << endl << "Построим цикл перестановки. " << endl;
-			doRobot(TABLE_DIST, SAVETHEWAY, WAY, TABLE_A, TABLE_B, M, N, MAX_i, MAX_j, iteration, isFirstRun, isFinalTry, drawCycleWay);
+			doRobot(TABLE_DIST, SAVETHEWAY, WAY, TABLE_A, TABLE_B, M, N, MAX_j, MAX_i, iteration, isFirstRun, isFinalTry, drawCycleWay);
 			iteration++;
 			continue;
 		}
@@ -529,14 +529,13 @@ int main() {
 	TABLE_A = new Table_A[M];
 	TABLE_B = new Table_B[N];
 	TABLE_DIST = new Table_District*[M];
-	for (int i = 0; i < N; i++)
+	for (int i = 0; i < M; i++)
 		TABLE_DIST[i] = new Table_District[N];
 
 	for (int i = 0; i < M; i++) {
 		cout << "Введите расходы по перевозке товаров для A" << i + 1 << "строки по отношению к В1-В" << N << "столбцам:\t";
 		for (int j = 0; j < N; j++) {
 			cin >> TABLE_DIST[i][j].RASXOD;
-			TABLE_DIST[i][j].TOVAR_AMT = NAN;
 		}
 	}
 	for (int i = 0; i < M; i++) {

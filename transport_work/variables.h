@@ -1,8 +1,8 @@
 using namespace std;
 
 struct Table_District {
-	double TOVAR_AMT;
-	int RASXOD;
+	double TOVAR_AMT = NAN;
+	int RASXOD = NULL;
 	double U = NAN; //строка
 	double V = NAN; //столбец
 	bool isCheckedAlready = false; //флаг проверки €чейки
@@ -109,8 +109,8 @@ bool isFirstRun = true;
 bool isFinalTry = false;
 bool drawCycleWay = false;
 
-int N = NULL; //пункты продажи
-int	M = NULL; //пункты производства
+int N = NULL; //пункты продажи, оно же j-e
+int	M = NULL; //пункты производства, оно же i-e
 int SUMM_A = NULL,
 	SUMM_B = NULL;
 
