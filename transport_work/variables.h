@@ -1,13 +1,13 @@
 using namespace std;
 
 struct Table_District {
-	double TOVAR_AMT = NAN;
-	int RASXOD = NULL;
-	double U = NAN; //строка
-	double V = NAN; //столбец
-	bool isCheckedAlready = false; //флаг проверки €чейки
-	bool isUsedOnCycle = false; //флаг вершины в цикле перестановки
-	bool isMinus_PT = true; //флаг отрицательной метки
+	double				TOVAR_AMT = NAN;
+	int					RASXOD = NULL;
+	double				U = NAN;					//строка
+	double				V = NAN;					//столбец
+	bool				isCheckedAlready = false;	//флаг проверки €чейки
+	bool				isUsedOnCycle = false;		//флаг вершины в цикле перестановки
+	bool				isMinus_PT = true;			//флаг отрицательной метки
 	Table_District()
 	{}
 
@@ -23,51 +23,27 @@ struct Table_District {
 	}
 };
 
-struct Table_A {
-	int id;
-	int AMT; //запас продукции в количестве
-	Table_A()
+struct Table_AB {
+	int					id;
+	int					AMT;						//запас продукции в количестве
+	Table_AB()
 	{}
 
-	Table_A(int xx, int yy)
+	Table_AB(int xx, int yy)
 	{
 		id = xx;
 		AMT = yy;
 	}
 };
 
-struct Table_B {
-	int id;
-	int AMT; //необходимое кол-во продукции
-	Table_B()
+struct Table_UV {
+	double				AMOUNT = NAN;					//строка
+	Table_UV()
 	{}
 
-	Table_B(int xx, int yy)
+	Table_UV(double xx)
 	{
-		id = xx;
-		AMT = yy;
-	}
-};
-
-struct Table_U {
-	double U = NAN; //строка
-	Table_U()
-	{}
-
-	Table_U(double xx)
-	{
-		U = xx;
-	}
-};
-
-struct Table_V {
-	double V = NAN; //столбец
-	Table_V()
-	{}
-
-	Table_V(double xx)
-	{
-		V = xx;
+		AMOUNT = xx;
 	}
 };
 
@@ -87,8 +63,8 @@ struct Table_Alpha {
 };
 
 struct WayCell {
-	int i = NULL; //координата строки
-	int j = NULL; //координата столбца
+	int					i = NULL;					//координата строки
+	int					j = NULL;					//координата столбца
 	WayCell()
 	{}
 
@@ -100,24 +76,30 @@ struct WayCell {
 	}
 };
 
-int min = INT_MIN;
-int A_BASIC_i, A_BASIC_j; //координаты исходной точки поиска
-int iteration = NULL;
+int						min = INT_MIN;
+int						A_BASIC_i, A_BASIC_j;		//координаты исходной точки поиска
+int						iteration = NULL;
+int						N = NULL;					//пункты продажи, оно же j-e
+int						M = NULL;					//пункты производства, оно же i-e
+int						SUMM_A = NULL;
+int						SUMM_B = NULL;
 
-bool isOpenWork = false; //флаг типа задачи
-bool isFirstRun = true;
-bool isFinalTry = false;
-bool drawCycleWay = false;
+bool					isOpenWork = false;			//флаг типа задачи
+bool					isFirstRun = true;
+bool					isFinalTry = false;
+bool					drawCycleWay = false;
+bool					is1stStageReady = true;
+bool					is2ndStageReady = false;
+bool					is3rdStageReady = false;
+bool					is4thStageReady = false;
+bool					isWorkWithColumn = false;
 
-int N = NULL; //пункты продажи, оно же j-e
-int	M = NULL; //пункты производства, оно же i-e
-int SUMM_A = NULL,
-	SUMM_B = NULL;
+Table_AB					*TABLE_A;
+Table_AB					*TABLE_B;
+Table_District			**TABLE_DIST;
 
-Table_A *TABLE_A;
-Table_B *TABLE_B;
-Table_District **TABLE_DIST;
+double					*MEM_MASSIVE;
 
-vector <WayCell> WAY; //вектор пам€ти пути робота
+vector <WayCell>		WAY;						//вектор пам€ти пути робота
 
-WayCell *SAVETHEWAY;
+WayCell					*SAVETHEWAY;

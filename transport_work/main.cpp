@@ -1,6 +1,8 @@
 #include <iostream>
 #include <clocale>
 #include <vector>
+#include <conio.h>
+#include <string>
 #include "variables.h"
 
 using namespace std;
@@ -12,7 +14,7 @@ bool CheckIsClosed(int A, int B) {
 		return false;
 }
 
-void DrawTable(Table_District **D, Table_A *A, Table_B *B, int n, int m, int iteration, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
+void DrawTable(Table_District **D, Table_AB *A, Table_AB *B, int n, int m, int iteration, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
 	if (!drawCycleWay) {
 		if (isFirstRun)
 			cout << "\nИсходное опорное решение:" << endl;
@@ -215,7 +217,7 @@ bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int H
 
 }
 
-void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A, Table_B *TABLE_B, int VERT_M, int HORZ_M, int A_BASIC_i, int A_BASIC_j, int iter_from, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
+void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_AB *TABLE_A, Table_AB *TABLE_B, int VERT_M, int HORZ_M, int A_BASIC_i, int A_BASIC_j, int iter_from, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
 	int A_i, A_j; //внутренние координаты точки
 	int iteration = 0; //внутренний счетчик итераций
 	bool isVerticalSearch = true; //на нулевой итерации будем идти всегда по вертикали
@@ -321,7 +323,7 @@ bool CheckOptimal(Table_Alpha *TABLE_AL, int V_MASS, int INT_MAX_COUNT) {
 		return false;
 }
 
-void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *TABLE_V, Table_Alpha *TABLE_AL, Table_District **TABLE_DIST, int N, int M, int FULL_MASS, int V_MASS, int *SAVE_OPTI) {
+void FindOptimal(Table_AB *TABLE_A, Table_AB *TABLE_B, Table_UV *TABLE_U, Table_UV *TABLE_V, Table_Alpha *TABLE_AL, Table_District **TABLE_DIST, int N, int M, int FULL_MASS, int V_MASS, int *SAVE_OPTI) {
 	int temp = NULL,
 		count_value = NULL;
 	cout << "Стоимость транспортных расходов равна: " << endl;
@@ -344,21 +346,21 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 
 	//Находим потанцевалы занятых ячеек
 	cout << "\nРасчет потенциалов.\nПредположим, что V[0] = 0. Тогда найдем потенциалы *занятых* ячеек, где:\n" << endl;
-	TABLE_V[0].V = 0.0;
+	TABLE_V[0].AMOUNT = 0.0;
 	bool endofCycle = false;
 	while (!endofCycle) {
 		for (int j = 0; j < N; j++) {
 			for (int i = 0; i < M; i++) {
 				if (!isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
-					if (isnan(TABLE_U[j].U) && !isnan(TABLE_V[i].V)) {
-						TABLE_U[j].U = TABLE_DIST[i][j].RASXOD + TABLE_V[i].V;
-						cout << "U[" << j << "] = " << TABLE_DIST[i][j].RASXOD << " + " << TABLE_V[i].V << " = " << TABLE_U[j].U << ";" << endl;
+					if (isnan(TABLE_U[j].AMOUNT) && !isnan(TABLE_V[i].AMOUNT)) {
+						TABLE_U[j].AMOUNT = TABLE_DIST[i][j].RASXOD + TABLE_V[i].AMOUNT;
+						cout << "U[" << j << "] = " << TABLE_DIST[i][j].RASXOD << " + " << TABLE_V[i].AMOUNT << " = " << TABLE_U[j].AMOUNT << ";" << endl;
 						count_value++;
 						continue;
 					}
-					else if (isnan(TABLE_V[i].V) && !isnan(TABLE_U[j].U)) {
-						TABLE_V[i].V = ((-1)*TABLE_DIST[i][j].RASXOD) + TABLE_U[j].U;
-						cout << "V[" << i << "] = -(" << TABLE_DIST[i][j].RASXOD << ") + " << TABLE_U[j].U << " = " << TABLE_V[i].V << ";" << endl;
+					else if (isnan(TABLE_V[i].AMOUNT) && !isnan(TABLE_U[j].AMOUNT)) {
+						TABLE_V[i].AMOUNT = ((-1)*TABLE_DIST[i][j].RASXOD) + TABLE_U[j].AMOUNT;
+						cout << "V[" << i << "] = -(" << TABLE_DIST[i][j].RASXOD << ") + " << TABLE_U[j].AMOUNT << " = " << TABLE_V[i].AMOUNT << ";" << endl;
 						count_value++;
 						continue;
 					}
@@ -380,13 +382,13 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 	//вывод таблицы потенциалов
 	cout << endl;
 	for (int i = 0; i < FULL_MASS; i++) {
-		if (!isnan(TABLE_V[i].V))
-			cout << "V[" << i + 1 << "] = " << TABLE_V[i].V << ";" << endl;
-		if (!isnan(TABLE_U[i].U)) {
+		if (!isnan(TABLE_V[i].AMOUNT))
+			cout << "V[" << i + 1 << "] = " << TABLE_V[i].AMOUNT << ";" << endl;
+		if (!isnan(TABLE_U[i].AMOUNT)) {
 			if (i + 1 >= FULL_MASS)
-				cout << "U[" << i + 1 << "] = " << TABLE_U[i].U << "." << endl;
+				cout << "U[" << i + 1 << "] = " << TABLE_U[i].AMOUNT << "." << endl;
 			else
-				cout << "U[" << i + 1 << "] = " << TABLE_U[i].U << ";" << endl;
+				cout << "U[" << i + 1 << "] = " << TABLE_U[i].AMOUNT << ";" << endl;
 		}
 	}
 	cout << endl;
@@ -397,8 +399,8 @@ void FindOptimal(Table_A *TABLE_A, Table_B *TABLE_B, Table_U *TABLE_U, Table_V *
 	for (int j = 0; j < N; j++) {
 		for (int i = 0; i < M; i++) {
 			if (isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
-				TABLE_AL[count_value].a = TABLE_U[j].U - TABLE_V[i].V - TABLE_DIST[i][j].RASXOD;
-				cout << "AL[" << count_value << "] = U[" << j << "]-V[" << i << "]-" << TABLE_DIST[i][j].RASXOD << " = " << TABLE_U[j].U << " - " << TABLE_V[i].V << " - " << TABLE_DIST[i][j].RASXOD << " = " << TABLE_AL[count_value].a << endl;
+				TABLE_AL[count_value].a = TABLE_U[j].AMOUNT - TABLE_V[i].AMOUNT - TABLE_DIST[i][j].RASXOD;
+				cout << "AL[" << count_value << "] = U[" << j << "]-V[" << i << "]-" << TABLE_DIST[i][j].RASXOD << " = " << TABLE_U[j].AMOUNT << " - " << TABLE_V[i].AMOUNT << " - " << TABLE_DIST[i][j].RASXOD << " = " << TABLE_AL[count_value].a << endl;
 				TABLE_AL[count_value].i = i;
 				TABLE_AL[count_value].j = j;
 				count_value++;
@@ -426,7 +428,7 @@ void FindMaximalNumber(Table_Alpha *TABLE_AL, int V_MASS, int *MAX_i, int *MAX_j
 	cout << MAX << endl;
 }
 
-void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A, Table_B *TABLE_B, Table_District **TABLE_DIST, int N, int M, int iteration, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
+void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_AB *TABLE_A, Table_AB *TABLE_B, Table_District **TABLE_DIST, int N, int M, int iteration, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
 	int *SAVE_OPTI;
 	SAVE_OPTI = new int[1];
 	vector <int> INT_OPTIMAL;
@@ -439,10 +441,10 @@ void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A,
 
 	i_FT = j_FT = MAX_i = MAX_j = NULL;
 
-	Table_A *TEMP_A = new Table_A[M];
-	Table_B *TEMP_B = new Table_B[N];
-	Table_U *TABLE_U = new Table_U[FULL_MASS];
-	Table_V *TABLE_V = new Table_V[FULL_MASS];
+	Table_AB *TEMP_A = new Table_AB[M];
+	Table_AB *TEMP_B = new Table_AB[N];
+	Table_UV *TABLE_U = new Table_UV[FULL_MASS];
+	Table_UV *TABLE_V = new Table_UV[FULL_MASS];
 	Table_Alpha *TABLE_AL = new Table_Alpha[V_MASS];
 
 	for (int i = 0; i < M; i++) {
@@ -497,8 +499,8 @@ void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A,
 
 
 			for (int i = 0; i < FULL_MASS; i++) {
-				TABLE_U[i].U = NAN;
-				TABLE_V[i].V = NAN;
+				TABLE_U[i].AMOUNT = NAN;
+				TABLE_V[i].AMOUNT = NAN;
 			}
 
 			for (int i = 0; i < V_MASS; i++)
@@ -518,16 +520,129 @@ void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_A *TABLE_A,
 	}
 }
 
+void clearCin() {
+	//очистка консольного ввода
+	cin.clear();
+	//игнорирование предыщущей попытки ввода
+	cin.ignore(INT_MAX, '\n');
+	cout << "Некорректный ввод. Введите целое положительное число. Повторите ввод." << endl;
+	//удержание ввода
+	_getch();
+	//очистка экрана
+	//system("CLS");
+	cout << endl;
+}
+
+double CheckData(string InputText) {
+
+	double				temp = NULL;
+	string				SymbolFromStringS;			//переменная для хранения одного символа из целой строки
+	char				*String_buffer;				//буфер значений символов строки
+	char				*NewStringValue;			//символьный массив для хранения "нажатых" символов
+	char				OneSynbol;					//переменная для хранения одного символа из буфера
+	bool				NotASymbol = false;			//"если не символ", по умолчанию - "нет"
+
+	String_buffer = new char[1];
+	NewStringValue = new char[1];
+
+	while (!NotASymbol) { //пока не наткнемся на символ
+		for (int i = 0; i < strlen(InputText.c_str()); i++) {
+			//присваивание первого символа основной строки временной
+			SymbolFromStringS = InputText[i];
+			//конвертация символа строки в элемент символьного массива
+			strcpy(String_buffer, SymbolFromStringS.c_str());
+			//конвертация элемента символьного массива в символ типа char
+			OneSynbol = String_buffer[0];
+			//если символ есть натуральное число
+			if (isdigit((unsigned char)OneSynbol))
+			{
+				//имитация ввода с клавиатуры символа во временный массив
+				cin.putback(OneSynbol);
+				cin >> NewStringValue[i];
+			}
+			//иначе возвращаем флаг найденного символа
+			else NotASymbol = true;
+		}
+		/*если спустя заход не вернулось число во временный массив,
+		значит, что символ не валидный и цикл принудительно прерывается*/
+		if (NewStringValue != NULL && !NotASymbol)
+			break;
+	}
+	//если цикл пройден корректно
+	if (!NotASymbol) {
+		//конвертация символьного массива в число
+		double a = double(atoi(NewStringValue));
+		return a;
+	}
+	//иначе
+	else {
+		return NAN;
+	}
+}
+
+bool CommandLineTextWrite_ToArrayDimension(double *MEM_MASSIVE, bool b_1stStage, bool b_2ndStage, bool b_3rdStage, bool b_4thStage, int dimension) {
+	double					NeedForCheckPlz = NULL;
+	string					TextInput;
+
+	if (b_1stStage && !b_2ndStage && !b_3rdStage && !b_4thStage)
+		cout << "Введите кол-во пунктов производcтва:\t";
+	else if (!b_1stStage && b_2ndStage && !b_3rdStage && !b_4thStage)
+		cout << "Введите кол-во пунктов продажи:\t";
+	else if (!b_1stStage && !b_2ndStage && (b_3rdStage || b_4thStage)) {
+		cout << "Введите кол-во запасов продукции в ";
+		if (b_3rdStage)
+			cout << "А" << dimension + 1 << " складу:\t";
+		if (b_4thStage)
+			cout << "В" << dimension + 1 << " пункте:\t";
+	}
+
+	cin >> TextInput;
+	NeedForCheckPlz = CheckData(TextInput);
+	if (isnan(NeedForCheckPlz))
+		return false;
+	else {
+		MEM_MASSIVE[0] = NeedForCheckPlz;
+		return true;
+	}
+}
+
+/* //это неработающая функция, я не знаю, как это починить
+void MakeClosed(Table_District **TABLE_DIST, Table_District **TEMP_TABLE_DIST, Table_AB *TABLE_A, Table_AB *TABLE_B, int *SAVE_THE_ARROW, bool WorkColumn, int SUMM_A, int SUMM_B) {
+	
+}*/
+
 int main() {
 	setlocale(0, "rus");
+	MEM_MASSIVE = new double[1];
+	do {
+		if(!CommandLineTextWrite_ToArrayDimension(MEM_MASSIVE, is1stStageReady, is2ndStageReady, is3rdStageReady, is4thStageReady, NULL)){
+			clearCin();
+			continue;
+		}
+		else {
+			M = int(MEM_MASSIVE[0]);
+			is1stStageReady = false;
+			is2ndStageReady = true;
+			while (1) {
+				if (!CommandLineTextWrite_ToArrayDimension(MEM_MASSIVE, is1stStageReady, is2ndStageReady, is3rdStageReady, is4thStageReady, NULL)) {
+					clearCin();
+					continue;
+				}
+				else {
+					N = int(MEM_MASSIVE[0]);
+					is2ndStageReady = false;
+					break;
+				}
+			}
+		}
+		if (!is1stStageReady && !is2ndStageReady)	
+			break;
+	} while (1);
 
-	cout << "Введите кол-во пунктов производcтва" << endl;
-	cin >> M;
-	cout << "Введите кол-во пунктов продажи" << endl;
-	cin >> N;
+	cout << endl;
 
-	TABLE_A = new Table_A[M];
-	TABLE_B = new Table_B[N];
+	TABLE_A = new Table_AB[M];
+	TABLE_B = new Table_AB[N];
 	TABLE_DIST = new Table_District*[M];
 	for (int i = 0; i < M; i++)
 		TABLE_DIST[i] = new Table_District[N];
@@ -535,25 +650,168 @@ int main() {
 	for (int i = 0; i < M; i++) {
 		cout << "Введите расходы по перевозке товаров для A" << i + 1 << "строки по отношению к В1-В" << N << "столбцам:\t";
 		for (int j = 0; j < N; j++) {
-			cin >> TABLE_DIST[i][j].RASXOD;
+			while (1) {
+				if (!CommandLineTextWrite_ToArrayDimension(MEM_MASSIVE, is1stStageReady, is2ndStageReady, is3rdStageReady, is4thStageReady, NULL)) {
+					clearCin();
+					continue;
+				}
+				else {
+					TABLE_DIST[i][j].RASXOD = int(MEM_MASSIVE[0]);
+					break;
+				}
+			}
 		}
 	}
+
+	cout << endl;
+	is3rdStageReady = true;
 	for (int i = 0; i < M; i++) {
-		cout << "Введите кол-во запасов продукции в А" << i + 1 << "складу:\t";
-		cin >> TABLE_A[i].AMT;
-		TABLE_A[i].id = i;
-		SUMM_A = SUMM_A + TABLE_A[i].AMT;
-	}
-	for (int i = 0; i < N; i++) {
-		cout << "Введите кол-во необходимой продукции в В" << i + 1 << "пункте:\t";
-		cin >> TABLE_B[i].AMT;
-		TABLE_B[i].id = i;
-		SUMM_B = SUMM_B + TABLE_B[i].AMT;
+		while (1) {
+			if (!CommandLineTextWrite_ToArrayDimension(MEM_MASSIVE, is1stStageReady, is2ndStageReady, is3rdStageReady, is4thStageReady, i)) {
+				clearCin();
+				continue;
+			}
+			else {
+				TABLE_A[i].AMT = int(MEM_MASSIVE[0]);
+				TABLE_A[i].id = i;
+				SUMM_A = SUMM_A + TABLE_A[i].AMT;
+				break;
+			}
+		}
 	}
 
-	if (!CheckIsClosed(SUMM_A, SUMM_B))
-		return -1;
+	cout << endl;
+	is3rdStageReady = false;
+	is4thStageReady = true;
+
+	for (int i = 0; i < N; i++) {
+		while (1) {
+			if (!CommandLineTextWrite_ToArrayDimension(MEM_MASSIVE, is1stStageReady, is2ndStageReady, is3rdStageReady, is4thStageReady, i)) {
+				clearCin();
+				continue;
+			}
+			else {
+				TABLE_B[i].AMT = int(MEM_MASSIVE[0]);
+				TABLE_B[i].id = i;
+				SUMM_B = SUMM_B + TABLE_B[i].AMT;
+				break;
+			}
+		}
+	}
+	
+	cout << endl;
+	is4thStageReady = false;
+	delete[]MEM_MASSIVE;
+	
+	if (!CheckIsClosed(SUMM_A, SUMM_B)) {
+		cout << "Обнаружена задача открытого типа. Необходимо привести задачу к каноническому виду." << endl;
+
+		int *SAVE_THE_ARROW = new int[2];
+		SAVE_THE_ARROW[0] = M;
+		SAVE_THE_ARROW[1] = N;
+
+		Table_District **TEMP_TABLE_DIST = new Table_District*[M];
+		for (int i = 0; i < M; i++)
+			TEMP_TABLE_DIST[i] = new Table_District[N];
+
+		for (int i = 0; i < M; i++) {
+			for (int j = 0; j < N; j++) {
+				TEMP_TABLE_DIST[i][j].RASXOD = TABLE_DIST[i][j].RASXOD;
+			}
+		}
+		delete[]TABLE_DIST;
+
+		if (SUMM_A > SUMM_B) {
+			isWorkWithColumn = true;
+			cout << "Обнаружен случай превышения запаса над потребностью. Необходимо добавить B" << N + 1 << " столбец." << endl;
+		}
+		else {
+			cout << "Обнаружен случай превышения потребности над запасом. Необходимо добавить А" << M + 1 << " строку." << endl;
+		}
+
+		/*Я не знаю почему после выполения функции все значения пропадают, придется костылить, но код идентичный*/
+		//код из функции
+		{
+			int PREV;
+			int *i_ptr;
+			Table_AB *TABLE_AB_ptr;
+			if (isWorkWithColumn) {
+				i_ptr = &SAVE_THE_ARROW[1];
+				TABLE_AB_ptr = &*TABLE_B;
+			}
+			else {
+				i_ptr = &SAVE_THE_ARROW[0];
+				TABLE_AB_ptr = &*TABLE_A;
+			}
+
+
+			PREV = *i_ptr;
+
+			Table_AB *TEMP_TABLE_AB = new Table_AB[*i_ptr];
+
+			for (int i = 0; i < *i_ptr; i++) {
+
+				TEMP_TABLE_AB[i].AMT = TABLE_AB_ptr[i].AMT;
+				TEMP_TABLE_AB[i].id = TABLE_AB_ptr[i].id;
+			}
+			*i_ptr = *i_ptr + 1;
+
+			if (isWorkWithColumn) {
+				delete[]TABLE_B;
+				TABLE_B = new Table_AB[*i_ptr];
+				TABLE_AB_ptr = &*TABLE_B;
+			}
+			else {
+				delete[]TABLE_A;
+				TABLE_A = new Table_AB[*i_ptr];
+				TABLE_AB_ptr = &*TABLE_A;
+			}
+
+
+			for (int i = 0; i < *i_ptr; i++) {
+				TABLE_AB_ptr[i].AMT = TEMP_TABLE_AB[i].AMT;
+				TABLE_AB_ptr[i].id = TEMP_TABLE_AB[i].id;
+				if (i + 1 == *i_ptr - 1) {
+					cout << "В таком случае, объем ";
+					if (isWorkWithColumn) {
+						cout << "В" << *i_ptr << " ячейки равен " << SUMM_A << " - " << SUMM_B << " = " << SUMM_A - SUMM_B << endl;
+						TABLE_AB_ptr[i + 1].AMT = SUMM_A - SUMM_B;
+					}
+					else {
+						cout << "A" << *i_ptr << " ячейки равен " << SUMM_B << " - " << SUMM_A << " = " << SUMM_B - SUMM_A << endl;
+						TABLE_AB_ptr[i + 1].AMT = SUMM_B - SUMM_A;
+					}
+					TABLE_AB_ptr[i + 1].id = i + 1;
+					break;
+				}
+			}
+			cout << "Расход для таких ячеек с основной таблице по умолчанию равен 0." << endl;
+			TABLE_DIST = new Table_District*[SAVE_THE_ARROW[0]];
+			for (int i = 0; i < SAVE_THE_ARROW[0]; i++)
+				TABLE_DIST[i] = new Table_District[SAVE_THE_ARROW[1]];
+
+			for (int i = 0; i < SAVE_THE_ARROW[0]; i++) {
+				for (int j = 0; j < SAVE_THE_ARROW[1]; j++) {
+					if ((isWorkWithColumn && j != PREV) || (!isWorkWithColumn && i != PREV))
+						TABLE_DIST[i][j].RASXOD = TEMP_TABLE_DIST[i][j].RASXOD;
+					else if ((isWorkWithColumn && j == PREV) || (!isWorkWithColumn && i == PREV))
+						TABLE_DIST[i][j].RASXOD = NULL;
+				}
+			}
+
+		}
+
+		M = SAVE_THE_ARROW[0];
+		N = SAVE_THE_ARROW[1];
+
+		cout << "Задача приведена к закрытому типу. Теперь можно приступать к поиску решения задачи." << endl;
+		LetsDoSomeWork(SAVETHEWAY, WAY, TABLE_A, TABLE_B, TABLE_DIST, N, M, iteration, isFirstRun, isFinalTry, drawCycleWay);
+		system("pause");
+		return 1;
+
+	}
 	else {
+		cout << "Обнаружена задача закрытого типа. \nskip" << endl;
 		LetsDoSomeWork(SAVETHEWAY, WAY, TABLE_A, TABLE_B, TABLE_DIST, N, M, iteration, isFirstRun, isFinalTry, drawCycleWay);
 		system("pause");
 		return 0;
