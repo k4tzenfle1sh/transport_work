@@ -71,9 +71,9 @@ void DrawTable(Table_District **D, Table_AB *A, Table_AB *B, int n, int m, int i
 	}
 }
 
-void cleanMemory(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, int HORZ_M, int VERT_M) {
+void cleanMemory(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, int HORZ_M, int VERT_N) {
 	for (int i = 0; i < HORZ_M; i++) {
-		for (int j = 0; j < VERT_M; j++) {
+		for (int j = 0; j < VERT_N; j++) {
 			if (TABLE_DIST[i][j].isCheckedAlready == true) { //если ячейка как-то проверялась, то
 															 //затираем все к ебаной матери
 				TABLE_DIST[i][j].isCheckedAlready = false;
@@ -98,8 +98,29 @@ void cleanMemory(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCe
 	*/
 }
 
-void replaceCycle(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, int VERT_M, int HORZ_M) {
+void replaceZeroBack(Table_District **TABLE_DIST, vector <WayCell> WAY) {
+	for (int i = WAY.size() - 1; i >= 0; i--) {
+		if (isnan(TABLE_DIST[WAY[i].i][WAY[i].j].TOVAR_AMT)) {
+			TABLE_DIST[WAY[i].i][WAY[i].j].TOVAR_AMT = 0.0;
+			break;
+		}
+	}
+}
+
+int CountFilledCells(Table_District **TABLE_DIST, int M, int N) {
+	int count = NULL;
+	for (int i = 0; i < M; i++) {
+		for (int j = 0; j < N; j++) {
+			if (!isnan(TABLE_DIST[i][j].TOVAR_AMT))
+				count += 1;
+		}
+	}
+	return count;
+}
+
+void replaceCycle(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, int VERT_N, int HORZ_M, int FULL_MASS) {
 	int MIN = INT_MAX;
+	int count = NULL;
 	//поиск минимального элемента
 	for (int i = 0; i < WAY.size(); i++) { //зная точные i,j делаем явную подстановку в основную таблицу по каждому элементу 
 		if (TABLE_DIST[WAY[i].i][WAY[i].j].isUsedOnCycle && TABLE_DIST[WAY[i].i][WAY[i].j].isMinus_PT == true) { //если ячейка действительна задействована и при этом минусовая, то
@@ -122,8 +143,13 @@ void replaceCycle(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayC
 				else
 					TABLE_DIST[WAY[i].i][WAY[i].j].TOVAR_AMT = 0.0 + MIN; //а иначе просто прибавим к нулю, как и должно быть
 			}
+			count += 1;
 		}
 	}
+
+	if (CountFilledCells(TABLE_DIST, HORZ_M, VERT_N) != FULL_MASS)
+		replaceZeroBack(TABLE_DIST, WAY);
+	else;
 
 	cleanMemory(TABLE_DIST, SAVETHEWAY, WAY, M, N); //цикл завершен, пора подчистить память и все флаги перерасчета
 }
@@ -135,7 +161,7 @@ bool checkCell(Table_District **TABLE_DIST, int *i, int *j) {
 		return false; //если уже проверяли ранее - скип клетки
 }
 
-bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int HORZ_M, int A_i, int A_j, int A_BASIC_i, int A_BASIC_j, int iteration, bool isCycleIsOver[], bool isVerticalSearch) {
+bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_N, int HORZ_M, int A_i, int A_j, int A_BASIC_i, int A_BASIC_j, int iteration, bool isCycleIsOver[], bool isVerticalSearch) {
 	int *i_ptr;
 	int *j_ptr; //указатели на i-e, j-e
 	int *A_Find; //указатель на предыдущее значение точки, либо пойдем по i, либо по j
@@ -147,7 +173,7 @@ bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int H
 
 	if (isVerticalSearch) { //если ищем по вертикали, то
 		A_Find = &A_i; //предыдущее значение есть i-e
-		LIMIT = &VERT_M; // ограничиваем по вертикали (написано, что горизонт, но мне лень править код из-за одной хуйни
+		LIMIT = &VERT_N; // ограничиваем по вертикали (написано, что горизонт, но мне лень править код из-за одной хуйни
 
 		A_check_valid = &A_BASIC_i; //проверяем по i-му базису
 
@@ -217,7 +243,7 @@ bool findway(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, int VERT_M, int H
 
 }
 
-void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_AB *TABLE_A, Table_AB *TABLE_B, int VERT_M, int HORZ_M, int A_BASIC_i, int A_BASIC_j, int iter_from, bool isFirstRun, bool isFinalTry, bool drawCycleWay) {
+void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_AB *TABLE_A, Table_AB *TABLE_B, int VERT_N, int HORZ_M, int A_BASIC_i, int A_BASIC_j, int iter_from, bool isFirstRun, bool isFinalTry, bool drawCycleWay, int FULL_MASS) {
 	int A_i, A_j; //внутренние координаты точки
 	int iteration = 0; //внутренний счетчик итераций
 	bool isVerticalSearch = true; //на нулевой итерации будем идти всегда по вертикали
@@ -240,7 +266,7 @@ void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> 
 	SAVETHEWAY = new WayCell[1]; //создаем единичный динам. массив, чтобы хранить значения после выполнения ф-ции
 
 								 //пошло говно по трубам
-	check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_M, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
+	check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_N, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
 
 	if (check_cycle && !isCycleIsOver[0]) { //если мы сразу же не обосрались, то 
 		WAY.push_back(WayCell(SAVETHEWAY[0].i, SAVETHEWAY[0].j)); // вносим второй шаг
@@ -252,11 +278,11 @@ void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> 
 		while (1) { //пошли гонять лысого, эээ, то есть цикл
 			if (iteration % 2 == 0) { //если итерация, то идем искать строго вверх
 				isVerticalSearch = true;
-				check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_M, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
+				check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_N, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
 			}
 			else { //иначе вдоль
 				isVerticalSearch = false;
-				check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_M, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
+				check_cycle = findway(TABLE_DIST, SAVETHEWAY, VERT_N, HORZ_M, A_i, A_j, A_BASIC_i, A_BASIC_j, iteration, isCycleIsOver, isVerticalSearch);
 			}
 
 			if (check_cycle && !isCycleIsOver[0]) { //если не обсер, то
@@ -292,10 +318,10 @@ void doRobot(Table_District **TABLE_DIST, WayCell *SAVETHEWAY, vector <WayCell> 
 
 				drawCycleWay = true;
 
-				DrawTable(TABLE_DIST, TABLE_A, TABLE_B, HORZ_M, VERT_M, iter_from, isFirstRun, isFinalTry, drawCycleWay);
+				DrawTable(TABLE_DIST, TABLE_A, TABLE_B, HORZ_M, VERT_N, iter_from, isFirstRun, isFinalTry, drawCycleWay);
 				drawCycleWay = false;
 
-				replaceCycle(TABLE_DIST, SAVETHEWAY, WAY, VERT_M, HORZ_M);
+				replaceCycle(TABLE_DIST, SAVETHEWAY, WAY, VERT_N, HORZ_M, FULL_MASS);
 				break;
 			}
 		}
@@ -353,14 +379,14 @@ void FindOptimal(Table_AB *TABLE_A, Table_AB *TABLE_B, Table_UV *TABLE_U, Table_
 			for (int i = 0; i < M; i++) {
 				if (!isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
 					if (isnan(TABLE_U[j].AMOUNT) && !isnan(TABLE_V[i].AMOUNT)) {
-						TABLE_U[j].AMOUNT = TABLE_DIST[i][j].RASXOD + TABLE_V[i].AMOUNT;
-						cout << "U[" << j << "] = " << TABLE_DIST[i][j].RASXOD << " + " << TABLE_V[i].AMOUNT << " = " << TABLE_U[j].AMOUNT << ";" << endl;
+						TABLE_U[j].AMOUNT = TABLE_DIST[i][j].RASXOD - TABLE_V[i].AMOUNT;
+						cout << "U[" << j << "] = " << TABLE_DIST[i][j].RASXOD << " - " << TABLE_V[i].AMOUNT << " = " << TABLE_U[j].AMOUNT << ";" << endl;
 						count_value++;
 						continue;
 					}
 					else if (isnan(TABLE_V[i].AMOUNT) && !isnan(TABLE_U[j].AMOUNT)) {
-						TABLE_V[i].AMOUNT = ((-1)*TABLE_DIST[i][j].RASXOD) + TABLE_U[j].AMOUNT;
-						cout << "V[" << i << "] = -(" << TABLE_DIST[i][j].RASXOD << ") + " << TABLE_U[j].AMOUNT << " = " << TABLE_V[i].AMOUNT << ";" << endl;
+						TABLE_V[i].AMOUNT = TABLE_DIST[i][j].RASXOD - TABLE_U[j].AMOUNT;
+						cout << "V[" << i << "] = " << TABLE_DIST[i][j].RASXOD << " - " << TABLE_U[j].AMOUNT << " = " << TABLE_V[i].AMOUNT << ";" << endl;
 						count_value++;
 						continue;
 					}
@@ -399,8 +425,8 @@ void FindOptimal(Table_AB *TABLE_A, Table_AB *TABLE_B, Table_UV *TABLE_U, Table_
 	for (int j = 0; j < N; j++) {
 		for (int i = 0; i < M; i++) {
 			if (isnan(TABLE_DIST[i][j].TOVAR_AMT)) {
-				TABLE_AL[count_value].a = TABLE_U[j].AMOUNT - TABLE_V[i].AMOUNT - TABLE_DIST[i][j].RASXOD;
-				cout << "AL[" << count_value << "] = U[" << j << "]-V[" << i << "]-" << TABLE_DIST[i][j].RASXOD << " = " << TABLE_U[j].AMOUNT << " - " << TABLE_V[i].AMOUNT << " - " << TABLE_DIST[i][j].RASXOD << " = " << TABLE_AL[count_value].a << endl;
+				TABLE_AL[count_value].a = TABLE_U[j].AMOUNT + TABLE_V[i].AMOUNT - TABLE_DIST[i][j].RASXOD;
+				cout << "AL[" << count_value << "] = U[" << j << "]+V[" << i << "]-" << TABLE_DIST[i][j].RASXOD << " = " << TABLE_U[j].AMOUNT << " + " << TABLE_V[i].AMOUNT << " - " << TABLE_DIST[i][j].RASXOD << " = " << TABLE_AL[count_value].a << endl;
 				TABLE_AL[count_value].i = i;
 				TABLE_AL[count_value].j = j;
 				count_value++;
@@ -507,7 +533,7 @@ void LetsDoSomeWork(WayCell *SAVETHEWAY, vector <WayCell> WAY, Table_AB *TABLE_A
 				TABLE_AL[i].a = NAN;
 
 			cout << endl << "Построим цикл перестановки. " << endl;
-			doRobot(TABLE_DIST, SAVETHEWAY, WAY, TABLE_A, TABLE_B, M, N, MAX_j, MAX_i, iteration, isFirstRun, isFinalTry, drawCycleWay);
+			doRobot(TABLE_DIST, SAVETHEWAY, WAY, TABLE_A, TABLE_B, M, N, MAX_j, MAX_i, iteration, isFirstRun, isFinalTry, drawCycleWay, FULL_MASS);
 			iteration++;
 			continue;
 		}
@@ -535,20 +561,32 @@ void clearCin() {
 
 double CheckData(string InputText) {
 
+	int					count = NULL;
 	double				temp = NULL;
 	string				SymbolFromStringS;			//переменная для хранения одного символа из целой строки
+	string				ZERO = "0";
 	char				*String_buffer;				//буфер значений символов строки
 	char				*NewStringValue;			//символьный массив для хранения "нажатых" символов
 	char				OneSynbol;					//переменная для хранения одного символа из буфера
 	bool				NotASymbol = false;			//"если не символ", по умолчанию - "нет"
+	bool				firstTry = true;			//флаг первого запуска
+	bool				isCheckedAlready = false;
 
 	String_buffer = new char[1];
 	NewStringValue = new char[1];
 
 	while (!NotASymbol) { //пока не наткнемся на символ
+		if (firstTry && InputText[0] == ZERO[0]) {
+			if (strlen(InputText.c_str()) == 1)
+				return NAN;
+			else;
+		}
+		firstTry = false;
 		for (int i = 0; i < strlen(InputText.c_str()); i++) {
 			//присваивание первого символа основной строки временной
 			SymbolFromStringS = InputText[i];
+			if (SymbolFromStringS[0] == ZERO[0] && !isCheckedAlready)
+				continue;
 			//конвертация символа строки в элемент символьного массива
 			strcpy(String_buffer, SymbolFromStringS.c_str());
 			//конвертация элемента символьного массива в символ типа char
@@ -556,9 +594,12 @@ double CheckData(string InputText) {
 			//если символ есть натуральное число
 			if (isdigit((unsigned char)OneSynbol))
 			{
+
 				//имитация ввода с клавиатуры символа во временный массив
+				isCheckedAlready = true;
 				cin.putback(OneSynbol);
-				cin >> NewStringValue[i];
+				cin >> NewStringValue[count];
+				count += 1;
 			}
 			//иначе возвращаем флаг найденного символа
 			else NotASymbol = true;
